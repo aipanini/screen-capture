@@ -99,6 +99,7 @@ python cli.py capture --screen --clipboard
 
 ```
 screen-capture/
+├── SKILL.md               # 标准 skill 定义（skills.sh 生态）
 ├── README.md              # 本文档
 ├── .gitignore
 ├── requirements.txt
