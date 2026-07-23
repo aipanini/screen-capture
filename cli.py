@@ -15,20 +15,34 @@ from win_utils import WindowInfo, find_single_window, focus_window, list_windows
 from capture import do_capture
 
 
+def _display_width(text: str) -> int:
+    """计算字符串的显示宽度（中文等宽字符算 2，英文算 1）。"""
+    import unicodedata
+    return sum(2 if unicodedata.east_asian_width(c) in ('W', 'F') else 1 for c in text)
+
+
+def _pad_to_display(text: str, width: int) -> str:
+    """将文本用空格填充到指定显示宽度。"""
+    current = _display_width(text)
+    if current >= width:
+        return text
+    return text + ' ' * (width - current)
+
+
 def _format_table(windows: list[WindowInfo]) -> str:
     """将窗口列表格式化为对齐表格字符串。"""
     if not windows:
         return "（无可见窗口）"
 
-    # 计算各列最大宽度
-    max_title = max(len(w.title) for w in windows)
-    max_title = min(max_title, 50)  # 标题最多显示 50 字符
-    max_proc = max(len(w.process_name) for w in windows)
+    # 计算各列最大显示宽度
+    max_title_disp = max(_display_width(w.title) for w in windows)
+    max_title_disp = min(max_title_disp, 50)  # 标题最多显示 50 字符（显示宽度）
+    max_proc_disp = max(_display_width(w.process_name) for w in windows)
 
     header = (
         f"{'HWND':>10}  "
-        f"{'标题':<{max_title}}  "
-        f"{'进程':<{max_proc}}  "
+        f"{_pad_to_display('标题', max_title_disp)}  "
+        f"{_pad_to_display('进程', max_proc_disp)}  "
         f"{'PID':>8}  "
         f"{'可见':>4}  "
         f"位置/尺寸"
@@ -37,13 +51,13 @@ def _format_table(windows: list[WindowInfo]) -> str:
 
     lines = [header, sep]
     for w in windows:
-        title_display = w.title[:max_title] if len(w.title) > max_title else w.title
+        title_display = w.title[:50] if _display_width(w.title) > 50 else w.title
         visible_mark = "✓" if w.is_visible else "✗"
         rect_str = f"({w.rect[0]},{w.rect[1]} {w.rect[2]-w.rect[0]}x{w.rect[3]-w.rect[1]})"
         line = (
             f"{w.hwnd:10}  "
-            f"{title_display:<{max_title}}  "
-            f"{w.process_name:<{max_proc}}  "
+            f"{_pad_to_display(title_display, max_title_disp)}  "
+            f"{_pad_to_display(w.process_name, max_proc_disp)}  "
             f"{w.pid:8}  "
             f"{visible_mark:>4}  "
             f"{rect_str}"

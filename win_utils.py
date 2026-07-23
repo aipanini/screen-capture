@@ -56,6 +56,7 @@ def enable_dpi_awareness() -> None:
 
 def _get_process_name(pid: int) -> str:
     """根据 PID 获取进程名。"""
+    handle = None
     try:
         handle = win32api.OpenProcess(
             win32con.PROCESS_QUERY_LIMITED_INFORMATION, False, pid
@@ -66,10 +67,15 @@ def _get_process_name(pid: int) -> str:
             ctypes.c_void_p(int(handle)), ctypes.c_void_p(0), buf, 260
         )
         name = buf.value.split("\\")[-1]
-        ctypes.windll.kernel32.CloseHandle(int(handle))
         return name
     except Exception:
         return "unknown"
+    finally:
+        if handle is not None:
+            try:
+                ctypes.windll.kernel32.CloseHandle(int(handle))
+            except Exception:
+                pass
 
 
 def _enum_callback(hwnd: int, windows: list) -> bool:

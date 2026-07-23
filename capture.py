@@ -147,15 +147,12 @@ def capture_screen(monitor: int = 0) -> Image.Image:
         return ImageGrab.grab()
     else:
         # 多显示器：使用 EnumDisplayMonitors 获取各显示器区域
-        monitors = list(ImageGrab.grab().getbbox())  # fallback
         display_monitors = []
 
         def _monitor_enum(hmonitor, hdc, rect, data):
             display_monitors.append(rect)
             return True
 
-        # 使用 ctypes 枚举显示器
-        import ctypes
         callback_type = ctypes.WINFUNCTYPE(
             ctypes.c_int,
             ctypes.c_ulong,
@@ -203,7 +200,7 @@ def capture_window(window: WindowInfo) -> Image.Image:
     hwnd_dc = win32gui.GetWindowDC(hwnd)
     mem_dc = ctypes.windll.gdi32.CreateCompatibleDC(hwnd_dc)
     bmp = ctypes.windll.gdi32.CreateCompatibleBitmap(hwnd_dc, width, height)
-    ctypes.windll.gdi32.SelectObject(mem_dc, bmp)
+    old_bmp = ctypes.windll.gdi32.SelectObject(mem_dc, bmp)
 
     try:
         # 使用 PrintWindow 进行截图
@@ -245,6 +242,7 @@ def capture_window(window: WindowInfo) -> Image.Image:
         return image
 
     finally:
+        ctypes.windll.gdi32.SelectObject(mem_dc, old_bmp)
         ctypes.windll.gdi32.DeleteObject(bmp)
         ctypes.windll.gdi32.DeleteDC(mem_dc)
         win32gui.ReleaseDC(hwnd, hwnd_dc)
