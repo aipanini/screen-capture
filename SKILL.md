@@ -1,6 +1,7 @@
-| name | screen-capture |
-|---|---|
-| description | Captures screenshots (full screen, specific window, or screen region) and brings windows to foreground via CLI. Invoke when user asks to take a screenshot, capture a window, check what's on screen, or bring a window to front. |
+---
+name: screen-capture
+description: Captures screenshots (full screen, specific window, or screen region) and brings windows to foreground via CLI. Invoke when user asks to take a screenshot, capture a window, check what's on screen, or bring a window to front.
+---
 
 # screen-capture
 
