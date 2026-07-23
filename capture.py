@@ -230,14 +230,24 @@ def capture_window(window: WindowInfo) -> Image.Image:
             buffer, ctypes.byref(bmp_header), DIB_RGB_COLORS,
         )
 
-        image = Image.frombytes(
-            "RGBA",
-            (bmp_info.bmWidth, bmp_info.bmHeight),
-            buffer.raw,
-        )
+        # 32 位 BGRA 转换为 RGB，正确处理预乘 Alpha
+        import numpy as np
+        raw_arr = np.frombuffer(buffer.raw, dtype=np.uint8).reshape(
+            bmp_info.bmHeight, bmp_info.bmWidth, 4
+        ).copy()
+        # GDI 位图格式: BGRA
+        b, g, r, a = raw_arr[:,:,0], raw_arr[:,:,1], raw_arr[:,:,2], raw_arr[:,:,3]
 
-        # 去除 Alpha 通道（PrintWindow 输出的 alpha 可能为 0）
-        image = image.convert("RGB")
+        # 对非完全不透明像素做反预乘还原
+        mask = (a > 0) & (a < 255)
+        a_float = a[mask].astype(np.float32)
+        r[mask] = np.minimum(255, (r[mask].astype(np.float32) * 255.0 / a_float)).astype(np.uint8)
+        g[mask] = np.minimum(255, (g[mask].astype(np.float32) * 255.0 / a_float)).astype(np.uint8)
+        b[mask] = np.minimum(255, (b[mask].astype(np.float32) * 255.0 / a_float)).astype(np.uint8)
+
+        # 拼接为 RGB
+        rgb = np.stack([r, g, b], axis=2)
+        image = Image.fromarray(rgb, "RGB")
 
         return image
 
