@@ -20,7 +20,7 @@ python cli.py capture --window "关键字" [--output PATH] [--clipboard] [--dela
 python cli.py capture --region X Y W H [--output PATH] [--clipboard] [--delay MS]
 
 # 窗口置顶
-python cli.py focus --window "关键字" [--restore]
+python cli.py focus "关键字" [--restore]
 ```
 
 ### 功能详情
@@ -86,10 +86,10 @@ python cli.py capture --window "Chrome" --output C:\temp\chrome.png
 python cli.py capture --region 0 0 800 600 --output C:\temp\region.png --delay 500
 
 # 将 VS Code 窗口置到最前端
-python cli.py focus --window "Visual Studio Code"
+python cli.py focus "Visual Studio Code"
 
 # 将最小化的 VS Code 恢复并置顶
-python cli.py focus --window "Visual Studio Code" --restore
+python cli.py focus "Visual Studio Code" --restore
 
 # 截图直接写入剪贴板
 python cli.py capture --screen --clipboard
